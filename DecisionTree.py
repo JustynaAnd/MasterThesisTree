@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[22]:
-
 
 import pandas as pd
 import numpy as np
@@ -23,17 +21,11 @@ from IPython.display import Image
 import pydotplus
 
 
-# In[2]:
-
-
 # data loading and cleaning 
 data = pd.read_csv('data494.csv')
 
 data_df = pd.DataFrame(data)
 data_df.head(5)
-
-
-# In[3]:
 
 
 # Columns - drop / change names
@@ -54,13 +46,7 @@ data_df = data_df.drop(columns=['Timestamp', 'E-mail'], axis=1)
 data_df
 
 
-# In[4]:
-
-
 print(data_df.info())
-
-
-# In[5]:
 
 
 # NEP - convert answers to points
@@ -98,9 +84,6 @@ for i, col in enumerate(data_df.filter(regex = "^NEP").columns):
 print(data_df.filter(regex = "^NEP").head())
 
 
-# In[6]:
-
-
 # GEK - match positive answers
 
 # 1c 2e 3a 4c 5d 6c 7b 8d 9d 10d 11b 12e 13d 14e 15d
@@ -134,9 +117,6 @@ for i, col in enumerate(data_df.filter(regex = "^GEK").columns):
 print(data_df.filter(regex = "^GEK").head())
 
 
-# In[7]:
-
-
 # SIB - convert answers to points
 print(data_df.filter(regex = "^SIBS").head())
 
@@ -166,9 +146,6 @@ for i, col in enumerate(data_df.filter(regex = "^SIBS").columns):
 print(data_df.filter(regex = "^SIBS").head())
 
 
-# In[8]:
-
-
 # Add columns with scores
 data_df['NEP_score'] = data_df.loc[:, data_df.filter(regex = "^(NEP)").columns].sum(axis=1)
 data_df['GEK_score'] = data_df.loc[:, data_df.filter(regex = "^(GEK)").columns].sum(axis=1)
@@ -177,17 +154,10 @@ data_df['SIBS_score'] = data_df.loc[:, data_df.filter(regex = "^(SIBS)").columns
 data_df.head()
 
 
-# In[9]:
-
-
 print(data_df.info())
 
 
-# In[10]:
-
-
 ### Answers' translations
-
 
 #sex
 sex_old_cat = data_df['Sex'].unique().tolist()
@@ -363,9 +333,6 @@ data_df['Next_election'] = data_df['Next_election'].replace(election_dict)
 print(data_df['Next_election'].head())
 
 
-# In[11]:
-
-
 # Pie charts 
 
 colors_02 = ['yellowgreen', 'gold']
@@ -503,9 +470,6 @@ plt.show()
 get_ipython().run_line_magic('matplotlib', 'inline')
 
 
-# In[12]:
-
-
 ###### scores analysis
 
 #NEP_score
@@ -539,9 +503,6 @@ plt.savefig('SIBS_score.png', facecolor='w', edgecolor='w', orientation='portrai
 plt.show()
 
 
-# In[13]:
-
-
 #Spearman correlation for continuous variables
 NG_cor = scipy.stats.spearmanr(data_df['NEP_score'],data_df['GEK_score'])
 NS_cor = scipy.stats.spearmanr(data_df['NEP_score'],data_df['SIBS_score'])
@@ -549,16 +510,10 @@ SG_cor = scipy.stats.spearmanr(data_df['SIBS_score'],data_df['GEK_score'])
 NG_cor, NS_cor, SG_cor
 
 
-# In[14]:
-
-
 #output variable discretization
 print(pd.qcut(data_df['SIBS_score'], q = 4).value_counts())
 data_df['SIBS_label'] = pd.qcut(data_df['SIBS_score'], q = 4, labels = ['low', 'medium', 'high', 'very high']).astype(str)
 data_df.head()
-
-
-# In[15]:
 
 
 #input variables encoding
@@ -591,18 +546,11 @@ preprocessor = ColumnTransformer(
         ('cat', categorical_transformer, categorical_features)])
 
 
-# In[16]:
-
-
 # model pipeline (for given random seed)
 clf = Pipeline(steps=[('preprocessor', preprocessor),
                       ('classifier', tree.DecisionTreeClassifier(random_state = 0,
                                                                 max_depth = 10,
                                                                 min_samples_leaf = 10))])
-
-
-# In[17]:
-
 
 # dataset split
 
@@ -611,9 +559,6 @@ print(X.head())
 print(X.info())
 y = data_df['SIBS_label']
 print(y.head())
-
-
-# In[18]:
 
 
 # model for 1k iterations - find the best score
@@ -631,9 +576,6 @@ for i in range(1000):
         score_opt = score
 
 
-# In[19]:
-
-
 # results histogram
 plt.hist(scores)
 plt.plot()
@@ -641,17 +583,11 @@ plt.savefig('models_hist.png', facecolor='w', edgecolor='w', orientation='portra
 print(pd.Series(scores).describe())
 
 
-# In[20]:
-
-
 # best model
 print(score_opt)
 
 clf = clf.fit(X_train_opt, y_train_opt)
 #clf.score(X_test_opt, y_test_opt)
-
-
-# In[23]:
 
 
 # tree export and visualisation
@@ -675,9 +611,6 @@ Image(graph.create_png())
 
 # interpretation: 
 # https://towardsdatascience.com/understanding-decision-trees-for-classification-python-9663d683c952
-
-
-# In[25]:
 
 
 # optimize the tree depth
@@ -709,9 +642,6 @@ plt.savefig('max_depth.png', facecolor='w', edgecolor='w', orientation='portrait
 plt.show()
 
 
-# In[26]:
-
-
 # optimal tree with depth = 8
 
 clf_best = Pipeline(steps=[('preprocessor', preprocessor),
@@ -731,9 +661,6 @@ tree.export_graphviz(clf_best.named_steps['classifier'], out_file=dot_data,
 graph = pydotplus.graph_from_dot_data(dot_data.getvalue())  
 graph.write_png('tree_best.png')
 Image(graph.create_png())
-
-
-# In[ ]:
 
 
 # features importance
